@@ -16,145 +16,29 @@ if [[ $dialog == "" ]]; then
     echo "Success."
   fi
 fi
-dialog --title "Minecraft-Server Installer $pcver" \
---msgbox "
 
-       Play on Dreamcraft Network
-             Minecraft-Servers!
-
-" 12 48
-
-dialog --title "Minecraft-Server Installer $pcver" \
---msgbox "
- Minecraft-Server: The Minecraft-Server Installer
-      For Raspberry Pi and Other SBCs
-
-         Installer Version: $pcver
-
-" 16 48
-# Gather some info about your system which will be used to determine the config
-revision=$(cat /proc/cpuinfo | grep 'Revision' | awk '{print $3}')
-board="Unknown" # Default will be overridden if determined
-memtotal=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}') # Amount of memory in KB
-memavail=$(cat /proc/meminfo | grep MemAvailable | awk '{print $2}') # Amount of memory in KB
-memvariance=$(($memtotal - $memavail)) # Figure out how much memory is being used so we can make dynamic decisions for this board
-mem=$(( (($memtotal - $memvariance) / 1024) - 518)) # Amount of memory in MB
-memreservation=$((($memavail * 20/100) / 1024)) # Reserve memory for system (Failure to do this will cause "Error occurred during initialization of VM")
-gamemem=$(($mem - $memreservation)) # Calculate how much memory we can give to the game server (in MB)
-gamememMIN=$((($mem * 80/100) - 1024)) # Figure a MINIMUM amount of memory to allocate
-# Seriously, if you have 100 GB RAM, we don't need more than 12 of it
-if (( $gamemem > 12000 )); then
-    gamemem=12288
-    gamememMIN=1500
-fi
-oc_volt=0
-oc_friendly="N/A"
-if (( $gamememMIN < 0 )); then
-  dialog --title "Error" \
-    --msgbox "
-YOU DON'T HAVE ENOUGH AVAILABLE RAM
-
-Your system shows only $((${memavail} / 1024))MB RAM available, but with the applications running you have only $mem MB RAM available for allocation, which doesn't leave enough for overhead. Typically I'd want to be able to allocate at least 2 GB RAM.
-
-Either you have other things running, or your board is simply not good enough to run a Minecraft-Server." 18 50
-   echo
-   echo
-   echo "Failed. Not enough memory available for Minecraft-Server."
-   echo
-   exit 0
-fi
-
-if
-   [[ "$revision" == *"a03111" ]] ||
-   [[ "$revision" == *"b03111" ]] ||
-   [[ "$revision" == *"b03112" ]] ||
-   [[ "$revision" == *"b03114" ]] ||
-   [[ "$revision" == *"c03111" ]] ||
-   [[ "$revision" == *"c03112" ]] ||
-   [[ "$revision" == *"c03114" ]] ||
-   [[ "$revision" == *"d03114" ]]; then
-     board='Raspberry Pi 4'
-     boardnum=1
-     oc_volt=4
-     oc_freq=1900
-     oc_friendly="1.9 GHz"
-elif [[ "$revision" == *"c03130" ]]; then
-  board='Raspberry Pi 400'
-  boardnum=2
-  oc_volt=6
-  oc_freq=2000
-  oc_friendly="2.0 GHz"
-fi
-
-if (( $gamemem > 3800 )); then
-  kernel=$(uname -a)
-  if [[ ! "$kernel" == *"amd64"* ]] && [[ ! "$kernel" == *"arm64"* ]] && [[ ! "$kernel" == *"aarch64"* ]] && [[ ! "$kernel" == *"x86_64"* ]]; then
-
-    dialog --title "Warning" \
-    --msgbox "
-WARNING: 32-Bit OS on 64-Bit Board!
-
-Upgrade your distro to 64-bit to use your RAM.
-
-Since you are only using a 32-bit OS, you cannot use more than 4 GB RAM for Minecraft. Abort and Upgrade." 13 50
-
-    gamemem=2500
-    gamememMIN=1500
-
+java=$(Java Version)
+if [[ $java == "11" ]]; then
+  printf "Installing Java... "
+  if [[ $updated == 0 ]]; then
+    apt-install openjdk-17-jre-headless > /dev/null 2>&1
+    updated=1
   fi
-else if (( $gamememMIN < 1024 )); then
-  dialog --title "Warning" --yesno "\nWARNING: Either you have other things running, or your board is simply not good enough to run a Minecraft-Server. It is recommended you abort. ONLY install this on a dedicated system with no desktop environment or other applications running.\n\nWould you like to ABORT?" 14 50
-  case $? in
-  0)
-   echo
-   echo
-   echo "Aborted."
-   echo
-   exit 1 ;;
-  esac
+  apt-get -y install openjdk-17-jre-headless > /dev/null 2>&1
+  dialog=$(which dialog)
+  if [[ $dialog == "" ]]; then
+    echo "Failed. Install Java"
+    exit 0
+  else
+    echo "Success."
+  fi
 fi
-fi
-dialog --title "Information" \
---msgbox "
-Detected Hardware:
-$board
-
-RAM to Allocate:
-${gamememMIN##*( )}MB - ${gamemem##*( )}MB
-
-Overclock To:
-$oc_friendly
-
-Server User:
-$user
-
-if [[ ! $oc_volt == 0 ]]; then
-  dialog --title "Confirmation"  --yesno "\nI will be modifying ${configfile} to overclock this ${board}. I am not responsible for damage to your system, and you do this at your own risk.\n\nContinue?" 12 50
-  case $? in
-  1)
-   echo
-   echo
-   echo "Aborted."
-   echo
-   exit 1 ;;
-  esac
-fi
-
-
-###############################################
-# Finished Asking Questions: Begin Installation
-###############################################
-###############################################
-# Create the scripts
-###############################################
-
-dialog --infobox "Creating scripts..." 3 34 ; sleep 1
-
-# Create the run script
+ if
+    echo "eula=true" >> eula.txt
+  fi
 if  
   if
-    # Non-forge servers
-    echo "exec java ${cli_args} -Xms${gamememMIN}M -Xmx${gamemem}M -jar `basename $jarfile` --nogui" >> ${instdir}server
+    echo "exec java -Xmx7G -Xms6.5G -jar server.jar nogui" >> ${instdir}server
   fi
 fi
 exit 1

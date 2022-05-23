@@ -32,12 +32,12 @@ if [[ $java == "11" ]]; then
     echo "Success."
   fi
 fi
- if
-    echo "eula=true" >> eula.txt
- if
-fi 
   if
+      echo "eula=true" >> eula.txt
+  if
+    if
     echo "exec java -Xmx7G -Xms6.5G -jar server.jar nogui" >> ${instdir}server
+    fi
   fi
 fi
 exit 1

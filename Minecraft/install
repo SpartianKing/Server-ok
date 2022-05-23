@@ -17,7 +17,6 @@ if [[ $dialog == "" ]]; then
   fi
 fi
 
-java=$(Java Version)
 if [[ $java == "11" ]]; then
   printf "Installing Java... "
   if [[ $updated == 0 ]]; then
@@ -35,8 +34,9 @@ if [[ $java == "11" ]]; then
 fi
  if
     echo "eula=true" >> eula.txt
-  fi
-if  
+ if
+fi
+fi 
   if
     echo "exec java -Xmx7G -Xms6.5G -jar server.jar nogui" >> ${instdir}server
   fi

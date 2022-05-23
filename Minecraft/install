@@ -37,7 +37,6 @@ fi
   if
     if
     echo "exec java -Xmx7G -Xms6.5G -jar server.jar nogui" >> ${instdir}server
-fi
 exit 1
 esac
 clear

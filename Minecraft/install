@@ -114,17 +114,6 @@ else if (( $gamememMIN < 1024 )); then
   esac
 fi
 fi
-
-dialog --title "Minecraft-Server Installer $pcver"  --yesno "Automatically load the server on boot?" 6 60
-  case $? in
-  0)
-   cron=1
-   ;;
-  1)
-   cron=0
-   ;;
-  esac
-
 dialog --title "Information" \
 --msgbox "
 Detected Hardware:

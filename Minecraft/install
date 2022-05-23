@@ -1,0 +1,47 @@
+#!/bin/bash
+
+dialog=$(which dialog)
+if [[ $dialog == "" ]]; then
+  printf "Installing dialog... "
+  if [[ $updated == 0 ]]; then
+    apt-get update > /dev/null 2>&1
+    updated=1
+  fi
+  apt-get -y install dialog > /dev/null 2>&1
+  dialog=$(which dialog)
+  if [[ $dialog == "" ]]; then
+    echo "Failed. Aborting. Install dialog first."
+    exit 0
+  else
+    echo "Success."
+  fi
+fi
+
+if [[ $java == "11" ]]; then
+  printf "Installing Java... "
+  if [[ $updated == 0 ]]; then
+    apt-install openjdk-17-jre-headless > /usr/bin/java >&1
+    updated=1
+  fi
+  apt-get -y install openjdk-17-jre-headless > /usr/bin/java >&1
+  dialog=$(which dialog)
+  if [[ $dialog == "" ]]; then
+    echo "Failed. Install Java"
+    exit 0
+  else
+    echo "Success."
+  fi
+fi
+  if
+      echo "eula=true" >> eula.txt
+  if
+    if
+    echo "exec java -Xmx7G -Xms6.5G -jar server.jar nogui" >> ${instdir}server
+exit 1
+clear
+  echo
+  echo
+  echo "Installation complete."
+  echo
+  echo "Minecraft-Server is now running on $ip"
+  echo

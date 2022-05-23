@@ -1,5 +1,37 @@
 #!/bin/bash
 
+dialog=$(which dialog)
+if [[ $dialog == "" ]]; then
+  printf "Installing dialog... "
+  if [[ $updated == 0 ]]; then
+    apt-get update > /dev/null 2>&1
+    updated=1
+  fi
+  apt-get -y install dialog > /dev/null 2>&1
+  dialog=$(which dialog)
+  if [[ $dialog == "" ]]; then
+    echo "Failed. Aborting. Install dialog first."
+    exit 0
+  else
+    echo "Success."
+  fi
+fi
+dialog --title "Minecraft-Server Installer $pcver" \
+--msgbox "
+
+       Play on Dreamcraft Network
+             Minecraft-Servers!
+
+" 12 48
+
+dialog --title "Minecraft-Server Installer $pcver" \
+--msgbox "
+ Minecraft-Server: The Minecraft-Server Installer
+      For Raspberry Pi and Other SBCs
+
+         Installer Version: $pcver
+
+" 16 48
 # Gather some info about your system which will be used to determine the config
 revision=$(cat /proc/cpuinfo | grep 'Revision' | awk '{print $3}')
 board="Unknown" # Default will be overridden if determined
@@ -107,9 +139,6 @@ $oc_friendly
 Server User:
 $user
 
-Server Version:
-$flavor $mcver ($gamemode)" 20 50
-
 if [[ ! $oc_volt == 0 ]]; then
   dialog --title "Confirmation"  --yesno "\nI will be modifying ${configfile} to overclock this ${board}. I am not responsible for damage to your system, and you do this at your own risk.\n\nContinue?" 12 50
   case $? in
@@ -142,20 +171,6 @@ fi
 chmod +x ${instdir}server
 # Set ownership to the user
 chown -R $user:$user $instdir
-# Need to generate the config and EULA
-# Note: Because the EULA is not yet accepted within eula.txt, the server will init and quit immediately.
-if [[ $upgrade == 0 ]] || [[ ! -e ${instdir}server.properties ]]; then
-  dialog --infobox "Initializing server..." 3 34 ; sleep 1
-  su - $user -c ${instdir}server > /dev/null 2>&1
-fi
-
-# Accepting the EULA
-if [[ $eula == "accepted" ]]; then
-  echo "# https://account.mojang.com/documents/minecraft_eula ACCEPTED by user during installation
-# $eula_stamp
-eula=true" > ${instdir}eula.txt
-fi
-
 # Create the safe reboot script
 echo '#!/bin/bash
 if [[ $EUID -ne 0 ]]; then
@@ -235,43 +250,6 @@ status)
 
     exit 1
 esac
-' > /etc/init.d/Minecraft-Server
-chmod a+x /etc/init.d/Minecraft-Server
-###############################################
-# /Create the scripts
-###############################################
-###############################################
-# Overclock
-###############################################
-
-if [[ ! $oc_volt == 0 ]]; then
-  dialog --infobox "Overclocking your system..." 3 34 ; sleep 1
-  datestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-
-  cp $configfile /boot/config-${datestamp}.txt
-
-  # Replace existing overclock settings or add new ones if none exist
-
-  /bin/sed -i -- "/over_voltage=/c\over_voltage=${oc_volt}" $configfile
-  if ! grep -q "over_voltage=" $configfile; then
-    echo "over_voltage=$oc_volt" >> $configfile
-  fi
-
-  /bin/sed -i -- "/arm_freq=/c\arm_freq=${oc_freq}" $configfile
-  if ! grep -q "arm_freq=" $configfile; then
-    echo "arm_freq=${oc_freq}" >> $configfile
-  fi
-
-  /bin/sed -i -- "/dtparam=audio=/c\dtparam=audio=off" $configfile
-  if ! grep -q "dtparam=audio=" $configfile; then
-    echo "dtparam=audio=" >> $configfile
-  fi
-
-fi
-
-###############################################
-# /Overclock
-###############################################
 clear
   echo
   echo
